@@ -1,6 +1,6 @@
-# Render blueprint for the SIH26034 FastAPI backend.
+# Render blueprint: backend (Docker) + frontend (static) in one deploy.
 # In Render: New → Blueprint → point at this repo. Then fill the `sync: false`
-# values below (DATABASE_URL from Supabase, FRONTEND_ORIGIN = Vercel URL).
+# values below (DATABASE_URL from Supabase, FRONTEND_ORIGIN = frontend URL).
 services:
   - type: web
     name: sih26034-backend
@@ -34,8 +34,6 @@ services:
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
-    dependsOn:
-      - sih26034-backend
     envVars:
       - key: VITE_API_BASE
         fromService:
