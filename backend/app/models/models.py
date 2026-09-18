@@ -122,6 +122,9 @@ class Finding(Base):
     Never a legal conclusion — officer resolves via review."""
     __tablename__ = "findings"
     id = Column(String, primary_key=True, default=uid)
+    # String/text everywhere by design: the app passes plain str ids into URLs,
+    # filters and JSON evidence. Supabase columns are converted uuid→text by
+    # migration 0004 so Python/Postgres agree (else UUID objects crash json).
     inspection_id = Column(String, ForeignKey("inspections.id"), index=True)
     kind = Column(String, default="CONFLICT")  # CONFLICT
     field = Column(String, default="")

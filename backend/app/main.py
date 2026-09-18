@@ -493,9 +493,11 @@ def audit_all(demo: str = Query(""), db: Session = Depends(get_db)):
     logs = db.query(models.AuditLog).order_by(models.AuditLog.created_at.desc()).limit(200).all()
     if demo in ("true", "false"):
         want_demo = demo == "true"
-        insp_ids = {i.id: bool(i.is_demo) for i in db.query(models.Inspection).all()}
+        # str() normalization: on Postgres ids come back as UUID objects,
+        # on SQLite as plain strings — compare textually on both.
+        insp_ids = {str(i.id): bool(i.is_demo) for i in db.query(models.Inspection).all()}
         logs = [l for l in logs
-                if (l.inspection_id in insp_ids and insp_ids[l.inspection_id] == want_demo)]
+                if (str(l.inspection_id) in insp_ids and insp_ids[str(l.inspection_id)] == want_demo)]
     return [{"inspection_id": l.inspection_id, "event": l.event, "actor": l.actor, "at": str(l.created_at), "reason": l.reason} for l in logs]
 
 @app.post("/api/inspections/{iid}/reports")
