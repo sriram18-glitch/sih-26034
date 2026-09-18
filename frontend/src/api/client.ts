@@ -1,4 +1,6 @@
-const BASE = import.meta.env.VITE_API_BASE || "";
+const _rawBase = (import.meta.env.VITE_API_BASE || "").trim().replace(/\/+$/, "");
+// Render Blueprint injects a bare hostname via fromService — add the scheme.
+const BASE = _rawBase && !/^https?:\/\//i.test(_rawBase) ? `https://${_rawBase}` : _rawBase;
 async function req(path: string, opts: RequestInit = {}) {
   const r = await fetch(BASE + path, opts);
   if (!r.ok) {
