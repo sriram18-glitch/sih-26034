@@ -1,0 +1,28 @@
+# Render blueprint for the SIH26034 FastAPI backend.
+# In Render: New → Blueprint → point at this repo. Then fill the `sync: false`
+# values below (DATABASE_URL from Supabase, FRONTEND_ORIGIN = Vercel URL).
+services:
+  - type: web
+    name: sih26034-backend
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: VISION_PROVIDER
+        value: tesseract
+      - key: FRONTEND_ORIGIN
+        sync: false # e.g. https://sih26034.vercel.app
+      - key: DATABASE_URL
+        sync: false # Supabase Postgres connection string (see supabase/migrations)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: MAX_UPLOAD_MB
+        value: 10
+      - key: OCR_HIGH_CONF
+        value: 0.75
+      - key: OCR_MED_CONF
+        value: 0.45

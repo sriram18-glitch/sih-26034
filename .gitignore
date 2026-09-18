@@ -1,0 +1,17 @@
+# secrets / env
+.env
+.env.*
+!.env.example
+# python
+__pycache__/
+*.pyc
+.venv/
+# node
+node_modules/
+dist/
+# local dev data (recreated automatically)
+backend/data/
+*.log
+# OS
+.DS_Store
+Thumbs.db
