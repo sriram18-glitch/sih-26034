@@ -114,16 +114,19 @@ def analyze(iid: str, provider: str = Query(""), db: Session = Depends(get_db)):
     insp = db.query(models.Inspection).filter_by(id=iid).first()
     if not insp: raise HTTPException(404, "Inspection not found")
     audit(db, "ANALYSIS_STARTED", iid, insp.officer_email)
-    # Live Mode must never silently use the demo provider.
-    requested = (provider or settings.VISION_PROVIDER).lower()
-    if not insp.is_demo and requested == "demo" and settings.VISION_PROVIDER == "demo":
-        pass  # server default; frontend labels provider in result — no silent claim
+    # Provider routing (explicit, never silent):
+    # - Demo inspections default to DemoVisionProvider (deterministic scenarios),
+    #   unless ?provider= explicitly overrides (testing only).
+    # - Live inspections use the configured provider; demo_ocr there is a 503.
+    if insp.is_demo:
+        prov = get_provider(provider or "demo")
+    else:
+        prov = get_provider(provider or settings.VISION_PROVIDER)
     hint_log = db.query(models.AuditLog).filter_by(inspection_id=iid, event="INSPECTION_CREATED").first()
     hint = (hint_log.reason if hint_log else "") + " " + (insp.product_name or "")
     images = db.query(models.InspectionImage).filter_by(inspection_id=iid).order_by(models.InspectionImage.created_at).all()
     if not images:
         raise HTTPException(400, "No images uploaded for this inspection.")
-    prov = get_provider(requested if insp.is_demo else (provider or settings.VISION_PROVIDER))
     if not insp.is_demo and prov.name == "demo_ocr":
         audit(db, "OCR_FAILED", iid, "system", {}, {"error": "Live OCR provider not configured (VISION_PROVIDER=demo)."})
         raise HTTPException(503, "Live OCR is unavailable: server VISION_PROVIDER is 'demo'. "
